@@ -2,6 +2,17 @@
 
 A **synthetic-data demonstration** of MLflow tracking, inference APIs, containerization, tests, CI and basic feature-shift monitoring. It is **not** the original master's implementation and **does not** establish detection of real malicious bots.
 
+## Real public dataset: FP-Stalker
+The repository now includes an SQL loader, chronological unlabeled evaluation of all six algorithms, aggregate data-quality and monitoring reports, and a separate real-data API. See the [FP-Stalker execution guide](docs/fpstalker.md).
+
+```bash
+source .venv/bin/activate
+export MLFLOW_ALLOW_FILE_STORE=true
+python -m src.train_fpstalker --sql data/raw/fpstalker/tableFingerprints.sql
+```
+
+This workflow does not overwrite the synthetic benchmark. It has been tested with a SQL fixture; execution on the downloaded public dump is the next validation step. There are no verified bot labels, so no real-data F1, ROC AUC or automatic winning-model claim is made.
+
 ## Requirements
 Python 3.11 is the package target; the demonstrated Codespaces session used Python 3.14. Installed dependency versions are recorded in [environment.txt](docs/results/environment.txt). Docker is optional. No Azure resources are required.
 

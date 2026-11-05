@@ -1,4 +1,4 @@
-"""Seven anomaly-scoring approaches. Clustering scores are engineering proxies,
+"""Six anomaly-scoring approaches. Clustering scores are engineering proxies,
 not supervised bot probabilities. Calibrate thresholds on a held-out unlabeled split.
 """
 import numpy as np
@@ -8,24 +8,27 @@ from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor, NearestNeighbors
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
 from src.features import FEATURES
 
 ALGORITHMS = ('isolation_forest', 'lof', 'kmeans', 'agglomerative', 'birch', 'dbscan')
-# Six families PLUS Isolation Forest = six algorithms in total (LOF, KMeans,
-# Agglomerative, BIRCH, DBSCAN, Isolation Forest).
+# Six algorithms; clustering distances are explicit novelty proxies.
 
 class AnomalyModel:
-    def __init__(self, algorithm='isolation_forest', contamination=.08, random_state=42):
+    def __init__(self, algorithm='isolation_forest', contamination=.08, random_state=42, numeric_features=None, categorical_features=None):
         if algorithm not in ALGORITHMS:
             raise ValueError(f'Unknown algorithm {algorithm}; choose from {ALGORITHMS}')
+        self.numeric_features = list(FEATURES[:-1] if numeric_features is None else numeric_features)
+        self.categorical_features = list(['ua_family'] if categorical_features is None else categorical_features)
         self.algorithm=algorithm
         self.contamination=contamination
         self.random_state=random_state
 
     def fit(self, X):
         self.preprocess_=ColumnTransformer([
-            ('numeric',StandardScaler(),FEATURES[:-1]),
-            ('categorical',OneHotEncoder(handle_unknown='ignore',sparse_output=False),['ua_family'])])
+            ('numeric',Pipeline([('impute',SimpleImputer(strategy='median',add_indicator=True)),('scale',StandardScaler())]),self.numeric_features),
+            ('categorical',OneHotEncoder(handle_unknown='ignore',sparse_output=False),self.categorical_features)])
         z=self.preprocess_.fit_transform(X)
         self.fit_rows_=len(z)
         a=self.algorithm
