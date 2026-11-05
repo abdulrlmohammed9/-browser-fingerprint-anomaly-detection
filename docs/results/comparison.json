@@ -1,0 +1,56 @@
+{
+  "isolation_forest": {
+    "precision": 0.6962025316455697,
+    "recall": 0.7142857142857143,
+    "f1": 0.7051282051282052,
+    "false_positive_rate": 0.02600216684723727,
+    "predicted_anomaly_fraction": 0.079,
+    "average_precision": 0.8370065754196744,
+    "roc_auc": 0.9781204710782175
+  },
+  "lof": {
+    "precision": 0.05063291139240506,
+    "recall": 0.05194805194805195,
+    "f1": 0.05128205128205128,
+    "false_positive_rate": 0.08125677139761647,
+    "predicted_anomaly_fraction": 0.079,
+    "average_precision": 0.07601826643671375,
+    "roc_auc": 0.37532889645565704
+  },
+  "kmeans": {
+    "precision": 0.1744186046511628,
+    "recall": 0.19480519480519481,
+    "f1": 0.18404907975460122,
+    "false_positive_rate": 0.07692307692307693,
+    "predicted_anomaly_fraction": 0.086,
+    "average_precision": 0.17651795676708365,
+    "roc_auc": 0.5335650265227729
+  },
+  "agglomerative": {
+    "precision": 0.2028985507246377,
+    "recall": 0.18181818181818182,
+    "f1": 0.1917808219178082,
+    "false_positive_rate": 0.059588299024918745,
+    "predicted_anomaly_fraction": 0.069,
+    "average_precision": 0.1450008824934197,
+    "roc_auc": 0.5304273191597135
+  },
+  "birch": {
+    "precision": 0.14130434782608695,
+    "recall": 0.16883116883116883,
+    "f1": 0.15384615384615385,
+    "false_positive_rate": 0.08559046587215602,
+    "predicted_anomaly_fraction": 0.092,
+    "average_precision": 0.09534135211797715,
+    "roc_auc": 0.47586216600301107
+  },
+  "dbscan": {
+    "precision": 0.2,
+    "recall": 0.2077922077922078,
+    "f1": 0.20382165605095542,
+    "false_positive_rate": 0.06933911159263272,
+    "predicted_anomaly_fraction": 0.08,
+    "average_precision": 0.2224532771074974,
+    "roc_auc": 0.39965668134682214
+  }
+}

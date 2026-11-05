@@ -1,0 +1,22 @@
+{
+  "screen_width": {
+    "mean_shift_in_baseline_sd": 0.003,
+    "flag": false
+  },
+  "screen_height": {
+    "mean_shift_in_baseline_sd": 0.012,
+    "flag": false
+  },
+  "plugin_count": {
+    "mean_shift_in_baseline_sd": 0.006,
+    "flag": false
+  },
+  "canvas_entropy": {
+    "mean_shift_in_baseline_sd": 0.006,
+    "flag": false
+  },
+  "hour": {
+    "mean_shift_in_baseline_sd": 0.01,
+    "flag": false
+  }
+}
