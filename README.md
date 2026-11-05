@@ -1,6 +1,6 @@
 # Browser Fingerprint Anomaly Detection — MLOps Extension
 
-A **synthetic-data demonstration** of MLflow tracking, inference APIs, containerization, tests, CI and basic feature-shift monitoring. It is **not** the original master's implementation and **does not** establish detection of real malicious bots.
+An anomaly-detection MLOps project with a **synthetic labeled benchmark** and a **real, unlabeled FP-Stalker evaluation**, including MLflow tracking, inference APIs, tests, CI, basic feature-shift monitoring and a supplied Dockerfile. It is **not** the original master's implementation and **does not** establish detection of real malicious bots.
 
 ## Real public dataset: FP-Stalker
 The repository now includes an SQL loader, chronological unlabeled evaluation of all six algorithms, aggregate data-quality and monitoring reports, and a separate real-data API. See the [FP-Stalker execution guide](docs/fpstalker.md).
@@ -11,7 +11,57 @@ export MLFLOW_ALLOW_FILE_STORE=true
 python -m src.train_fpstalker --sql data/raw/fpstalker/tableFingerprints.sql
 ```
 
-This workflow does not overwrite the synthetic benchmark. It has been tested with a SQL fixture; execution on the downloaded public dump is the next validation step. There are no verified bot labels, so no real-data F1, ROC AUC or automatic winning-model claim is made.
+This workflow preserves the synthetic benchmark. The full public-dump run is documented below. There are no verified bot labels, so no real-data F1, ROC AUC or automatic winning-model claim is made.
+
+## Verified FP-Stalker real-data results
+The downloaded public SQL dump was successfully processed in Codespaces. The checked-in [comparison JSON](docs/results/fpstalker/comparison.json), [comparison CSV](docs/results/fpstalker/comparison.csv), [data-quality report](docs/results/fpstalker/data_quality.json), and [monitoring report](docs/results/fpstalker/drift_report.json) record the run. Verification here means inspecting and reconciling those aggregate reports; it is not an independent reproduction of the raw dump or verification of anomaly labels.
+
+### Dataset and chronological splits
+- **15,000 input records**, **0 invalid timestamps**, and **61 duplicate retained records** according to the loader's retained-column comparison. Repeated observations were not automatically removed.
+- **10 prepared features**: four numeric features and six categorical features. Identifiers and creation timestamps are excluded from model inputs.
+- Screen width and height each have **22 missing values (0.147%)** across the full dataset. Timezone offset and plugin count have no missing numeric values under the current parser's rules; this does not independently validate their semantics.
+- The source dump SHA-256 is recorded in the data-quality report for reproducibility.
+
+| Period | Available records | Records used | Earliest creation time | Latest creation time |
+|---|---:|---:|---|---|
+| Fit | 8,838 | 3,000 | 2015-10-15 14:00:00 | 2016-05-12 00:00:00 |
+| Calibration | 2,997 | 2,997 | 2016-05-12 02:00:00 | 2016-07-06 17:00:00 |
+| Test | 3,165 | 3,165 | 2016-07-06 18:00:00 | 2016-08-31 09:00:00 |
+
+Available split counts reconcile to 15,000. The fit period was deterministically subsampled to 3,000 records for clustering cost. Boundaries use distinct timestamps, so row proportions differ from exactly 60/20/20. Times are reproduced as stored, without assuming a timezone.
+
+The overlap report counts **2,075 calibration rows** and **1,956 test rows** whose browser IDs appear anywhere in the available fit period. These are row counts, not unique-browser counts, and overlap is checked against the full fit period rather than only its 3,000-row training subsample. This is temporal evaluation with returning browsers, not an unseen-browser holdout.
+
+### Alert rates
+| Algorithm | Calibration alert rate | Test alert rate | Test alerts / 3,165 |
+|---|---:|---:|---:|
+| Isolation Forest | 7.87% | 9.19% | 291 |
+| LOF | 8.01% | 20.54% | 650 |
+| K-means | 7.84% | 6.64% | 210 |
+| Agglomerative Clustering | 8.01% | 6.32% | 200 |
+| BIRCH | 7.57% | 6.35% | 201 |
+| DBSCAN | 8.01% | 6.16% | 195 |
+
+All models target the upper 8% calibration-score tail, using a strict greater-than threshold. Tied scores and finite sample sizes can produce realized calibration rates below or slightly above 8%.
+
+These are operational alert rates, **not accuracy, bot prevalence, precision, recall, F1 or false-positive rates**. No verified anomaly labels are available and no best model is selected. A lower alert rate does not establish a better model. Raw anomaly scores use different units across algorithms.
+
+**LOF requires investigation:** its test alert rate rises to 20.54%, with a score median of approximately 1.237, 95th percentile of **7.94 billion**, and threshold of **6.95 million**. These finite but extreme values may reflect near-zero local distances or repeated feature vectors; that explanation is a hypothesis, not established by these reports. Inspect neighborhood distances, duplicate feature vectors and sensitivity to preprocessing/neighbors before drawing conclusions. The numeric mean-shift checks below cannot explain or rule out multivariate or categorical changes.
+
+### Numeric monitoring
+| Feature | Absolute mean shift in fit baseline SD | Test missing fraction | Flag |
+|---|---:|---:|---|
+| Screen width | 0.030 | 0.158% | false |
+| Screen height | 0.070 | 0.158% | false |
+| Timezone offset | 0.058 | 0.000% | false |
+| Plugin count | 0.294 | 0.000% | false |
+
+All four numeric shifts are below the configured threshold of greater than 1.0 baseline SD. Width and height each have five missing values in the test period. This narrow check does not establish absence of distribution drift: it does not assess categorical frequencies, local geometry, full score-distribution stability or detection performance.
+
+### Validation scope
+The complete public-dump training and aggregate reporting run is now recorded. The separate FP-Stalker API was tested with an invented SQL fixture; a live public-data API response has not yet been documented. Existing API screenshots show the synthetic model. Docker build/run and cloud deployment remain unvalidated. Synthetic metrics remain separately labeled below.
+
+
 
 ## Requirements
 Python 3.11 is the package target; the demonstrated Codespaces session used Python 3.14. Installed dependency versions are recorded in [environment.txt](docs/results/environment.txt). Docker is optional. No Azure resources are required.
@@ -25,7 +75,9 @@ Python 3.11 is the package target; the demonstrated Codespaces session used Pyth
 ## Architecture
 ```mermaid
 flowchart TD
-  A["Synthetic fingerprints"] --> B["Fit / calibration / test split"]
+  A["Synthetic fingerprints"] --> B["Stratified fit / calibration / test"]
+  R["FP-Stalker SQL dump"] --> S["Chronological fit / calibration / test"]
+  S --> C["Preprocessing and six algorithms"]
   B --> C["Preprocessing and six algorithms"]
   C --> D["Calibration and evaluation"]
   D --> E["MLflow experiment tracking"]
@@ -80,7 +132,7 @@ Open port 8000 through the Ports tab and append `/docs` to the actual forwarded 
 
 Values are rounded to three decimals; false-positive rate is a fraction (0.026 ≈ 2.6%). Isolation Forest had the highest average precision in this run. The selection uses the same test set, so these are exploratory synthetic results, not an unbiased estimate for the selected model or evidence of real bot detection.
 
-## Execution screenshots
+## Synthetic execution screenshots
 The Codespaces session demonstrated eight passing tests, MLflow runs, a successful API response and monitoring. These are captured session results, not a claim that every environment or Docker build has been validated.
 
 ### Tests
@@ -163,7 +215,7 @@ parameter selections, experimental results or data. Available algorithms:
 For fairer anomaly flagging, all algorithms use a **separate unlabeled calibration
 subset** and flag scores strictly above the 92nd percentile (8% expected alert
 rate). Scores have different units; **do not compare raw scores across models**.
-Labels are reserved for synthetic evaluation. The train/calibration/test split
+Labels are reserved for synthetic evaluation. The synthetic train/calibration/test split
 is 60%/20%/20%, stratified using simulated labels for test stability. A real
 study should use chronological splits and not rely on synthetic-label
 stratification.
