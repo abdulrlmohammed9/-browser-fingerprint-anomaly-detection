@@ -1,0 +1,22 @@
+{
+  "screen_width": {
+    "mean_shift_in_baseline_sd": 0.029929851508576577,
+    "flag": false,
+    "test_missing_fraction": 0.001579778830963665
+  },
+  "screen_height": {
+    "mean_shift_in_baseline_sd": 0.0698372417893215,
+    "flag": false,
+    "test_missing_fraction": 0.001579778830963665
+  },
+  "timezone_offset": {
+    "mean_shift_in_baseline_sd": 0.057932927531331835,
+    "flag": false,
+    "test_missing_fraction": 0.0
+  },
+  "plugin_count": {
+    "mean_shift_in_baseline_sd": 0.29381261464504743,
+    "flag": false,
+    "test_missing_fraction": 0.0
+  }
+}

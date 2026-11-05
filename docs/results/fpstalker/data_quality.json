@@ -1,0 +1,51 @@
+{
+  "source": "https://github.com/Spirals-Team/FPStalker",
+  "sha256": "744e5baf20bb6a8ce56d7cdcc099957496ae3b2a0b67bd2ffc1e9287ba46012c",
+  "raw_rows": 15000,
+  "duplicate_retained_records": 61,
+  "invalid_timestamp_rows": 0,
+  "features": [
+    "screen_width",
+    "screen_height",
+    "timezone_offset",
+    "plugin_count",
+    "platform",
+    "cookies",
+    "local_storage",
+    "session_storage",
+    "adblock",
+    "browser_family"
+  ],
+  "missing_numeric_fraction": {
+    "screen_width": 0.0014666666666666667,
+    "screen_height": 0.0014666666666666667,
+    "timezone_offset": 0.0,
+    "plugin_count": 0.0
+  },
+  "split_policy": "60/20/20 of distinct timestamps; no timestamp shared across splits",
+  "rows": {
+    "fit_available": 8838,
+    "fit_used": 3000,
+    "calibration": 2997,
+    "test": 3165
+  },
+  "periods": {
+    "fit": [
+      "2015-10-15 14:00:00",
+      "2016-05-12 00:00:00"
+    ],
+    "calibration": [
+      "2016-05-12 02:00:00",
+      "2016-07-06 17:00:00"
+    ],
+    "test": [
+      "2016-07-06 18:00:00",
+      "2016-08-31 09:00:00"
+    ]
+  },
+  "later_rows_with_browser_seen_in_fit": {
+    "calibration": 2075,
+    "test": 1956
+  },
+  "interpretation": "Temporal evaluation can contain returning browsers; not an unseen-browser evaluation. No bot/anomaly labels."
+}
